@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "aptoseidon-agentic-backend"
+version = "0.1.0"
+description = "Agentic FastAPI backend for Aptoseidon"
+authors = ["Aptoseidon Team"]
+readme = "README.md"
+packages = [{ include = "app" }]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.109.0"
+uvicorn = "^0.27.0"
+python-dotenv = "^1.0.0"
+httpx = "^0.27.0"
+openai = "^1.12.0"
+pydantic = "^2.6.0"
+pydantic-settings = "^2.2.0"
+beautifulsoup4 = "^4.14.3"
+googlesearch-python = "^1.3.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
