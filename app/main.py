@@ -166,6 +166,14 @@ async def analyze_project(request: AnalyzeRequest):
         
     return result
 
+@app.get("/history/{wallet_address}")
+async def get_history(wallet_address: str):
+    history = database.get_history_by_wallet(wallet_address)
+    return {
+        "status": "ok",
+        "history": history
+    }
+
 # --- Reputation / Ratings Stub ---
 
 class RatingRequest(BaseModel):

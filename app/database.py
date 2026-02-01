@@ -37,16 +37,57 @@ def init_db():
 def save_analysis(job_id: str, project_url: str, project_type: str, wallet_address: str, report: Dict[str, Any]):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
+    
+    # Minimize storage: Remove large/stale data like marketData from history
+    # We still keep the core AI analysis and pre-check data
+    pruned_report = json.loads(json.dumps(report)) # Deep copy
+    if "report" in pruned_report and "marketData" in pruned_report["report"]:
+        pruned_report["report"]["marketData"] = None # Prune market data to save space
+    
     cursor.execute('''
     INSERT OR REPLACE INTO analyses (job_id, project_url, project_type, wallet_address, report_json)
     VALUES (?, ?, ?, ?, ?)
-    ''', (job_id, project_url, project_type, wallet_address, json.dumps(report)))
+    ''', (job_id, project_url, project_type, wallet_address, json.dumps(pruned_report)))
     
     # Initialize reputation for new job
     cursor.execute('INSERT OR IGNORE INTO reputation (job_id) VALUES (?)', (job_id,))
     
+    # Cleanup: Keep only last 50 reports per wallet to stay in free tier
+    cursor.execute('''
+    DELETE FROM analyses 
+    WHERE wallet_address = ? AND job_id NOT IN (
+        SELECT job_id FROM analyses 
+        WHERE wallet_address = ? 
+        ORDER BY created_at DESC LIMIT 50
+    )
+    ''', (wallet_address, wallet_address))
+    
     conn.commit()
     conn.close()
+
+def get_history_by_wallet(wallet_address: str):
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute('''
+    SELECT job_id, project_url, project_type, report_json, created_at 
+    FROM analyses 
+    WHERE wallet_address = ? 
+    ORDER BY created_at DESC
+    ''', (wallet_address,))
+    rows = cursor.fetchall()
+    conn.close()
+    
+    history = []
+    for row in rows:
+        history.append({
+            "job_id": row["job_id"],
+            "project_url": row["project_url"],
+            "project_type": row["project_type"],
+            "created_at": row["created_at"],
+            "report": json.loads(row["report_json"])
+        })
+    return history
 
 def get_analysis_by_url(project_url: str) -> Optional[Dict[str, Any]]:
     conn = sqlite3.connect(DB_PATH)
