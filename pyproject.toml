@@ -5,6 +5,7 @@ description = "Agentic FastAPI backend for Aptoseidon"
 authors = ["Aptoseidon Team"]
 readme = "README.md"
 packages = [{ include = "app" }]
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.11"
