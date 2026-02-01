@@ -3,6 +3,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Basic logging config if not already set
+logging.basicConfig(level=logging.INFO)
+
 # Constants from Cheatsheet
 APTOS_TESTNET_URL = "https://api.testnet.aptoslabs.com/v1"
 PAYMENT_RECIPIENT = "0x701b1d24270dd314d417430fbc2fc5407c4119aa7a94bc3d467d94952f9bc6cc" # Wallet 1
@@ -39,6 +42,7 @@ async def verify_payment(tx_hash: str) -> bool:
             return False
             
         payload = tx_data.get("payload", {})
+        logger.info(f"Verifying Tx {tx_hash} payload: {payload}")
         
         # 2. Check function (Coin transfer or AptosAccount transfer)
         func = payload.get("function", "")
@@ -48,22 +52,32 @@ async def verify_payment(tx_hash: str) -> bool:
             
         args = payload.get("arguments", [])
         if len(args) < 2:
+            logger.warning(f"Tx {tx_hash} insufficient arguments: {args}")
             return False
             
         recipient = args[0]
-        amount = int(args[1])
+        try:
+            amount = int(args[1])
+        except (ValueError, TypeError):
+            logger.warning(f"Tx {tx_hash} invalid amount argument: {args[1]}")
+            return False
+        
+        logger.info(f"Tx {tx_hash} parsed: recipient={recipient}, amount={amount}")
         
         # 3. Verify Recipient and Amount
-        # Normalize addresses (remove leading 0s after 0x) for comparison if needed, 
-        # but standardized format usually matches.
-        if recipient != PAYMENT_RECIPIENT:
-            logger.warning(f"Tx {tx_hash} recipient mismatch. Got {recipient}, needed {PAYMENT_RECIPIENT}")
+        # Normalize addresses (0x prefixed, lowercase)
+        norm_recipient = recipient.lower() if recipient.startswith("0x") else f"0x{recipient.lower()}"
+        norm_target = PAYMENT_RECIPIENT.lower()
+        
+        if norm_recipient != norm_target:
+            logger.warning(f"Tx {tx_hash} recipient mismatch. Got {norm_recipient}, needed {norm_target}")
             return False
             
         if amount < REQUIRED_AMOUNT_OCTAS:
             logger.warning(f"Tx {tx_hash} insufficient amount. Got {amount}, needed {REQUIRED_AMOUNT_OCTAS}")
             return False
             
+        logger.info(f"Tx {tx_hash} verified successfully")
         return True
         
     except Exception as e:
