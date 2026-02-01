@@ -1,6 +1,6 @@
 from app.models import CollectorData, RuleResult, RiskAnalysis, CredibilityAnalysis
 from app import llm
-from typing import List, Optional
+from typing import Optional
 import json
 
 SYSTEM_PROMPT = """
@@ -15,7 +15,7 @@ Output valid JSON:
 }
 """
 
-async def detect_conflict(rules: List[RuleResult], risk: RiskAnalysis, cred: CredibilityAnalysis) -> dict:
+async def detect_conflict(rules: list[RuleResult], risk: RiskAnalysis, cred: CredibilityAnalysis) -> dict:
     rules_text = "\n".join([f"- {r.rule_id}: {r.status} - {r.reason}" for r in rules])
     analysis_text = f"""
     AI Risk Score: {risk.risk_score}

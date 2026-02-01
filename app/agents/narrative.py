@@ -1,6 +1,5 @@
 from app.models import CollectorData, RuleResult
 from app import llm
-from typing import List
 import json
 
 SYSTEM_PROMPT = """
@@ -12,7 +11,7 @@ Your job is to convert raw data and hard rule results into a neutral, factual su
 - Output a 3-sentence structural narrative.
 """
 
-async def generate_narrative(data: CollectorData, rules: List[RuleResult]) -> str:
+async def generate_narrative(data: CollectorData, rules: list[RuleResult]) -> str:
     rules_summary = "\n".join([f"- {r.rule_id}: {r.status} ({r.reason})" for r in rules])
     
     context = f"""

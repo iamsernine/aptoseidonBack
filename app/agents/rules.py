@@ -28,7 +28,7 @@ def check_contracts(data: CollectorData) -> RuleResult:
     # If it looks like an address but no modules
     return RuleResult(rule_id="CONTRACT_MISSING", status="WARN", reason="No modules found at address", source="AptosNode")
 
-def run_all_rules(data: CollectorData) -> List[RuleResult]:
+def run_all_rules(data: CollectorData) -> list[RuleResult]:
     results = []
     results.append(check_docs(data))
     results.append(check_liquidity(data))
