@@ -58,13 +58,13 @@ async def analyze_project(request: AnalyzeRequest):
                 "jobId": cached["job_id"]
             }
 
-    # If full report requested but not paid -> 402
-    if request.request_mode == "full" and not is_valid_payment:
+    # If full report requested but not paid -> 402 (unless evidence_only is true)
+    if request.request_mode == "full" and not is_valid_payment and not request.evidence_only:
         raise HTTPException(
             status_code=402, 
             detail={
                 "error": "Payment Required",
-                "message": "Full analysis requires payment.",
+                "message": "Full AI analysis requires payment. Use 'Evidence Only' mode for free access.",
                 "recipient": x402.PAYMENT_RECIPIENT,
                 "amount": x402.REQUIRED_AMOUNT_APT
             }
