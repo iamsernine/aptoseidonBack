@@ -14,6 +14,14 @@ import uuid
 
 app = FastAPI(title="Aptoseidon Agentic Backend")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # For MVP, allow all. Change to specific Netlify URL for production.
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Initialize database on load
 database.init_db()
 
@@ -25,7 +33,11 @@ class AnalyzeRequest(BaseModel):
     request_mode: str = "full" # "pre_check" or "full"
     evidence_only: bool = False
 
-# ... (root / well-known kept same)
+@app.get("/")
+async def root():
+    return {"status": "ok", "message": "Aptoseidon Agentic Backend is running"}
+
+# ... (well-known kept same)
 
 @app.post("/analyze")
 async def analyze_project(request: AnalyzeRequest):
